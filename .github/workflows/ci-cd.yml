@@ -30,6 +30,17 @@ jobs:
           source: "target/sample-app.war"
           target: "/tmp/"
 
+      # --- Grant permissions for jboss1 ---
+      - name: Grant WildFly permissions on jboss1
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.JBOSS1 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo chown -R ec2-user:ec2-user /opt/wildfly/standalone/tmp/auth
+            sudo chown -R ec2-user:ec2-user /opt/wildfly/standalone/deployments # Also good to ensure this is writable
+
       - name: Deploy WAR on jboss1
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -63,6 +74,17 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
           target: "/tmp/"
+
+      # --- Grant permissions for jboss2 ---
+      - name: Grant WildFly permissions on jboss2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.JBOSS2 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo chown -R ec2-user:ec2-user /opt/wildfly/standalone/tmp/auth
+            sudo chown -R ec2-user:ec2-user /opt/wildfly/standalone/deployments # Also good to ensure this is writable
 
       - name: Deploy WAR on jboss2
         uses: appleboy/ssh-action@v0.1.10
