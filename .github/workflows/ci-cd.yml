@@ -20,7 +20,7 @@ jobs:
         with:
           host: ${{ secrets.jboss1 }}
           username: ec2-user
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.jboss1 }}
           source: "target/sample-app.war"
           target: "/tmp/sample-app.war"
 
@@ -29,7 +29,7 @@ jobs:
         with:
           host: ${{ secrets.jboss1 }}
           username: ec2-user
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.jboss1 }}
           script: |
             /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample-app.war --force"
 
@@ -39,7 +39,7 @@ jobs:
         with:
           host: ${{ secrets.jboss2 }}
           username: ec2-user
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.jboss2 }}
           source: "target/sample-app.war"
           target: "/tmp/sample-app.war"
 
@@ -48,7 +48,7 @@ jobs:
         with:
           host: ${{ secrets.jboss2 }}
           username: ec2-user
-          key: ${{ secrets.EC2_KEY }}
+          key: ${{ secrets.jboss2 }}
           script: |
             /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample-app.war --force"
 
