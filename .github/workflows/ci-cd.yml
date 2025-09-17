@@ -27,8 +27,8 @@ jobs:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
-          source: "target/sample-app.war"
-          target: "/tmp/sample-app.war"
+	  source: "target/sample-app.war"
+	  target: "/tmp/"
 
       - name: Deploy WAR on jboss1
         uses: appleboy/ssh-action@v0.1.10
