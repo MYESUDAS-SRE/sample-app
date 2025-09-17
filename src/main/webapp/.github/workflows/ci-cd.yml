@@ -1,0 +1,55 @@
+name: CI/CD Sample App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build WAR
+        run: mvn clean package -DskipTests
+
+      # ---------------- jboss1 ----------------
+      - name: Copy WAR to jboss1
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.jboss1 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          source: "target/sample-app.war"
+          target: "/tmp/sample-app.war"
+
+      - name: Deploy WAR on jboss1
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.jboss1 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample-app.war --force"
+
+      # ---------------- jboss2 ----------------
+      - name: Copy WAR to jboss2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.jboss2 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          source: "target/sample-app.war"
+          target: "/tmp/sample-app.war"
+
+      - name: Deploy WAR on jboss2
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.jboss2 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample-app.war --force"
+
+
