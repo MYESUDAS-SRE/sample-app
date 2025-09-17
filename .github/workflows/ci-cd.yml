@@ -20,9 +20,9 @@ jobs:
       - name: Build WAR
         run: mvn clean package -DskipTests
 
-      # --- jboss1 Deployment ---
+      # ---------------- jboss1 ----------------
       - name: Copy WAR to jboss1
-        uses: appleboy/scp-action@v1.0.0 # Verified or updated version
+        uses: appleboy/scp-action@v1.0.0  # Updated version
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
@@ -31,39 +31,36 @@ jobs:
           target: "/tmp/"
 
       - name: Deploy WAR on jboss1
-        uses: appleboy/ssh-action@v1.0.0 # Use the same verified or updated version
+        uses: appleboy/ssh-action@v1.0.2 # Updated version
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Check if WildFly is running, start if not (run as wildfly user)
+            # Check if WildFly is running, and start it as the 'wildfly' user if not
             if ! pgrep -f "wildfly" > /dev/null; then
               echo "WildFly not running on JBOSS1, starting..."
-              # Ensure the 'wildfly' user exists and has necessary permissions
-              # The 'sudo -u wildfly' command assumes ec2-user has sudo privileges for wildfly
+              # Run WildFly as the 'wildfly' user using sudo
               sudo -u wildfly nohup /opt/wildfly/bin/standalone.sh \
                 -b 0.0.0.0 \
                 -bmanagement 0.0.0.0 \
                 -Djboss.bind.address.management=0.0.0.0 \
                 > /opt/wildfly/standalone/log/server.log 2>&1 &
-              sleep 20 # Give WildFly some time to start
+              sleep 20
             fi
-            
-            # Deploy the WAR file using jboss-cli as the wildfly user
+            # Connect and deploy using jboss-cli as the 'wildfly' user
             sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh \
               --connect \
               --controller=127.0.0.1:9990 \
               --user=${{ secrets.WILDFLY_USER }} \
               --password=${{ secrets.WILDFLY_PASS }} \
               --command="deploy /tmp/sample-app.war --force"
-            
-            # Health check
+            # Verify deployment
             curl -f http://localhost:8080/sample-app/ || exit 1
 
-      # --- jboss2 Deployment ---
+      # ---------------- jboss2 ----------------
       - name: Copy WAR to jboss2
-        uses: appleboy/scp-action@v1.0.0 # Verified or updated version
+        uses: appleboy/scp-action@v1.0.0  # Updated version
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
@@ -72,30 +69,29 @@ jobs:
           target: "/tmp/"
 
       - name: Deploy WAR on jboss2
-        uses: appleboy/ssh-action@v1.0.0 # Use the same verified or updated version
+        uses: appleboy/ssh-action@v1.0.2 # Updated version
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Check if WildFly is running, start if not (run as wildfly user)
+            # Check if WildFly is running, and start it as the 'wildfly' user if not
             if ! pgrep -f "wildfly" > /dev/null; then
               echo "WildFly not running on JBOSS2, starting..."
+              # Run WildFly as the 'wildfly' user using sudo
               sudo -u wildfly nohup /opt/wildfly/bin/standalone.sh \
                 -b 0.0.0.0 \
                 -bmanagement 0.0.0.0 \
                 -Djboss.bind.address.management=0.0.0.0 \
                 > /opt/wildfly/standalone/log/server.log 2>&1 &
-              sleep 20 # Give WildFly some time to start
+              sleep 20
             fi
-            
-            # Deploy the WAR file using jboss-cli as the wildfly user
+            # Connect and deploy using jboss-cli as the 'wildfly' user
             sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh \
               --connect \
               --controller=127.0.0.1:9990 \
               --user=${{ secrets.WILDFLY_USER }} \
               --password=${{ secrets.WILDFLY_PASS }} \
               --command="deploy /tmp/sample-app.war --force"
-            
-            # Health check
+            # Verify deployment
             curl -f http://localhost:8080/sample-app/ || exit 1
