@@ -39,7 +39,7 @@ jobs:
           script: |
             if ! pgrep -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting..."
-              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 > /opt/wildfly/standalone/log/server.log 2>&1 &
+              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Djboss.bind.address.management=0.0.0.0 > /opt/wildfly/standalone/log/server.log 2>&1 &
               sleep 15
             fi
             /opt/wildfly/bin/jboss-cli.sh \
@@ -69,7 +69,8 @@ jobs:
           script: |
             if ! pgrep -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting..."
-              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 > /opt/wildfly/standalone/log/server.log 2>&1 &
+              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Djboss.bind.address.management=0.0.0.0 > /opt/wildfly/standalone/log/server.log 2>&1 &
+
               sleep 15
             fi
             /opt/wildfly/bin/jboss-cli.sh \
