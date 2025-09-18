@@ -38,7 +38,7 @@ jobs:
           source: "target/sample-app.war"
           target: "/tmp/sample.war"
 
-      # 5️⃣ Deploy WAR on Node1
+      # 5️⃣ Deploy WAR to Node1
       - name: Deploy WAR on Node1
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -46,17 +46,23 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Ensure WildFly is running
-            if ! systemctl is-active --quiet wildfly; then
+            # Start WildFly if not running
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting..."
               sudo systemctl start wildfly
               sleep 10
             fi
 
-            # Deploy the WAR as wildfly user
+            # Verify port 9990
+            if ! ss -ltnp | grep -q ":9990"; then
+              echo "ERROR: WildFly is not listening on port 9990"
+              exit 1
+            fi
+
+            # Deploy as wildfly user
             sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
 
-      # 6️⃣ Deploy WAR on Node2
+      # 6️⃣ Deploy WAR to Node2
       - name: Deploy WAR on Node2
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -64,12 +70,18 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Ensure WildFly is running
-            if ! systemctl is-active --quiet wildfly; then
+            # Start WildFly if not running
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting..."
               sudo systemctl start wildfly
               sleep 10
             fi
 
-            # Deploy the WAR as wildfly user
+            # Verify port 9990
+            if ! ss -ltnp | grep -q ":9990"; then
+              echo "ERROR: WildFly is not listening on port 9990"
+              exit 1
+            fi
+
+            # Deploy as wildfly user
             sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
