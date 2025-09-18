@@ -22,7 +22,7 @@ jobs:
       - name: Copy WAR to Node1
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.EC2_HOST_NODE1 }}
+          host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
@@ -32,7 +32,7 @@ jobs:
       - name: Copy WAR to Node2
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.EC2_HOST_NODE2 }}
+          host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
@@ -42,7 +42,7 @@ jobs:
       - name: Deploy WAR on Node1
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST_NODE1 }}
+          host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
@@ -52,7 +52,7 @@ jobs:
       - name: Deploy WAR on Node2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_HOST_NODE2 }}
+          host: ${{ secrets.EC2_JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
