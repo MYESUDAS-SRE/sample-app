@@ -38,7 +38,7 @@ jobs:
           source: "target/sample-app.war"
           target: "/tmp/sample.war"
 
-      # 5️⃣ Deploy WAR to Node1 via SSH
+      # 5️⃣ Deploy WAR on Node1
       - name: Deploy WAR on Node1
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -46,15 +46,17 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Check if WildFly is running, if not start it
-            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
-              echo "WildFly not running on Node1, starting..."
-              sudo -u wildfly /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+            # Ensure WildFly is running
+            if ! systemctl is-active --quiet wildfly; then
+              echo "WildFly not running, starting..."
+              sudo systemctl start wildfly
               sleep 10
             fi
+
+            # Deploy the WAR as wildfly user
             sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
 
-      # 6️⃣ Deploy WAR to Node2 via SSH
+      # 6️⃣ Deploy WAR on Node2
       - name: Deploy WAR on Node2
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -62,10 +64,12 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Check if WildFly is running, if not start it
-            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
-              echo "WildFly not running on Node2, starting..."
-              sudo -u wildfly /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+            # Ensure WildFly is running
+            if ! systemctl is-active --quiet wildfly; then
+              echo "WildFly not running, starting..."
+              sudo systemctl start wildfly
               sleep 10
             fi
+
+            # Deploy the WAR as wildfly user
             sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
