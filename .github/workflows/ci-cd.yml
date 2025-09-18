@@ -46,14 +46,26 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
+            # Check if WildFly is running, if not start it
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
+              echo "WildFly not running on Node1, starting..."
+              sudo -u wildfly /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+              sleep 10
+            fi
+            sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
 
       # 6️⃣ Deploy WAR to Node2 via SSH
       - name: Deploy WAR on Node2
         uses: appleboy/ssh-action@v0.1.6
         with:
-          host: ${{ secrets.EC2_JBOSS2 }}
+          host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
+            # Check if WildFly is running, if not start it
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
+              echo "WildFly not running on Node2, starting..."
+              sudo -u wildfly /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &
+              sleep 10
+            fi
+            sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
