@@ -47,10 +47,10 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             # Start WildFly if not running
-            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
-              echo "WildFly not running, starting..."
-              sudo systemctl start wildfly
-              sleep 10
+            if ! pgrep -u ec2-user -f "wildfly" > /dev/null; then
+              echo "WildFly not running, starting with nohup..."
+              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 > /opt/wildfly/standalone/log/nohup.log 2>&1 &
+              sleep 15
             fi
 
             # Verify port 9990
@@ -59,8 +59,8 @@ jobs:
               exit 1
             fi
 
-            # Deploy as wildfly user
-            sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
+            # Deploy the WAR
+            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
 
       # 6️⃣ Deploy WAR to Node2
       - name: Deploy WAR on Node2
@@ -71,10 +71,10 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             # Start WildFly if not running
-            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
-              echo "WildFly not running, starting..."
-              sudo systemctl start wildfly
-              sleep 10
+            if ! pgrep -u ec2-user -f "wildfly" > /dev/null; then
+              echo "WildFly not running, starting with nohup..."
+              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 > /opt/wildfly/standalone/log/nohup.log 2>&1 &
+              sleep 15
             fi
 
             # Verify port 9990
@@ -83,5 +83,5 @@ jobs:
               exit 1
             fi
 
-            # Deploy as wildfly user
-            sudo -u wildfly /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
+            # Deploy the WAR
+            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
