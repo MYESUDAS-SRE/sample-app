@@ -50,14 +50,21 @@ jobs:
             if ! pgrep -u ec2-user -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting with nohup..."
               nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 > /opt/wildfly/standalone/log/nohup.log 2>&1 &
-              sleep 15
             fi
 
-            # Verify port 9990
-            if ! ss -ltnp | grep -q ":9990"; then
-              echo "ERROR: WildFly is not listening on port 9990"
-              exit 1
-            fi
+            # Wait until port 9990 is open (timeout 60 seconds)
+            echo "Waiting for WildFly to start..."
+            timeout=60
+            elapsed=0
+            while ! ss -ltnp | grep -q ":9990"; do
+              sleep 2
+              elapsed=$((elapsed + 2))
+              if [ $elapsed -ge $timeout ]; then
+                echo "ERROR: WildFly did not start within $timeout seconds"
+                exit 1
+              fi
+            done
+            echo "WildFly is listening on port 9990"
 
             # Deploy the WAR
             /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
@@ -74,14 +81,21 @@ jobs:
             if ! pgrep -u ec2-user -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting with nohup..."
               nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 > /opt/wildfly/standalone/log/nohup.log 2>&1 &
-              sleep 15
             fi
 
-            # Verify port 9990
-            if ! ss -ltnp | grep -q ":9990"; then
-              echo "ERROR: WildFly is not listening on port 9990"
-              exit 1
-            fi
+            # Wait until port 9990 is open (timeout 60 seconds)
+            echo "Waiting for WildFly to start..."
+            timeout=60
+            elapsed=0
+            while ! ss -ltnp | grep -q ":9990"; do
+              sleep 2
+              elapsed=$((elapsed + 2))
+              if [ $elapsed -ge $timeout ]; then
+                echo "ERROR: WildFly did not start within $timeout seconds"
+                exit 1
+              fi
+            done
+            echo "WildFly is listening on port 9990"
 
             # Deploy the WAR
             /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
