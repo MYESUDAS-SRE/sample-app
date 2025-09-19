@@ -18,7 +18,7 @@ jobs:
       - name: Build WAR
         run: mvn clean package -DskipTests
 
-      # 3️⃣ Copy WAR to EC2 Node1
+      # 3️⃣ Copy WAR to Node1
       - name: Copy WAR to Node1
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -28,7 +28,7 @@ jobs:
           source: "target/sample-app.war"
           target: "/tmp/sample.war"
 
-      # 4️⃣ Copy WAR to EC2 Node2
+      # 4️⃣ Copy WAR to Node2
       - name: Copy WAR to Node2
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -46,27 +46,23 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Start WildFly if not running
-            if ! pgrep -u ec2-user -f "wildfly" > /dev/null; then
+            # Switch to wildfly user for all commands
+            sudo -u wildfly bash <<'EOF'
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting with nohup..."
-              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 > /opt/wildfly/standalone/log/nohup.log 2>&1 &
-              sleep 15
+              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 \
+                > /opt/wildfly/wildfly.log 2>&1 &
+              sleep 20
             fi
 
-            # Wait until port 9990 is listening
-            timeout=60
-            elapsed=0
-            while ! ss -ltnp | grep -q ":9990"; do
-              sleep 2
-              elapsed=$((elapsed + 2))
-              if [ $elapsed -ge $timeout ]; then
-                echo "ERROR: WildFly did not start within $timeout seconds"
-                exit 1
-              fi
-            done
-
-            # Deploy the WAR
-            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
+            # Deploy WAR
+            /opt/wildfly/bin/jboss-cli.sh \
+              --connect \
+              --controller=127.0.0.1:9990 \
+              --user=${{ secrets.WILDFLY_USER }} \
+              --password=${{ secrets.WILDFLY_PASS }} \
+              --command="deploy /tmp/sample.war --force"
+            EOF
 
       # 6️⃣ Deploy WAR on Node2
       - name: Deploy WAR on Node2
@@ -76,24 +72,20 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Start WildFly if not running
-            if ! pgrep -u ec2-user -f "wildfly" > /dev/null; then
+            # Switch to wildfly user for all commands
+            sudo -u wildfly bash <<'EOF'
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               echo "WildFly not running, starting with nohup..."
-              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 > /opt/wildfly/standalone/log/nohup.log 2>&1 &
-              sleep 15
+              nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 \
+                > /opt/wildfly/wildfly.log 2>&1 &
+              sleep 20
             fi
 
-            # Wait until port 9990 is listening
-            timeout=60
-            elapsed=0
-            while ! ss -ltnp | grep -q ":9990"; do
-              sleep 2
-              elapsed=$((elapsed + 2))
-              if [ $elapsed -ge $timeout ]; then
-                echo "ERROR: WildFly did not start within $timeout seconds"
-                exit 1
-              fi
-            done
-
-            # Deploy the WAR
-            /opt/wildfly/bin/jboss-cli.sh --connect "deploy /tmp/sample.war --force"
+            # Deploy WAR
+            /opt/wildfly/bin/jboss-cli.sh \
+              --connect \
+              --controller=127.0.0.1:9990 \
+              --user=${{ secrets.WILDFLY_USER }} \
+              --password=${{ secrets.WILDFLY_PASS }} \
+              --command="deploy /tmp/sample.war --force"
+            EOF
