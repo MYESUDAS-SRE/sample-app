@@ -18,7 +18,7 @@ jobs:
       - name: Build WAR
         run: mvn clean package -DskipTests
 
-      # 3️⃣ Copy WAR to EC2 Node1
+      # 3️⃣ Copy WAR to Node1
       - name: Copy WAR to Node1
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -26,9 +26,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
-          target: "/tmp/"
+          target: "/tmp/sample-app.war"
 
-      # 4️⃣ Copy WAR to EC2 Node2
+      # 4️⃣ Copy WAR to Node2
       - name: Copy WAR to Node2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -36,7 +36,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
-          target: "/tmp/"
+          target: "/tmp/sample-app.war"
 
       # 5️⃣ Deploy WAR on Node1
       - name: Deploy WAR on Node1
@@ -53,9 +53,15 @@ jobs:
                 > /opt/wildfly/wildfly.log 2>&1 &
               sleep 20
             fi
-            # Deploy WAR
-            /opt/wildfly/bin/jboss-cli.sh --connect \
-              --command="deploy /tmp/sample-app.war --force"
+
+            echo "Cleaning old deployments..."
+            rm -f /opt/wildfly/standalone/deployments/sample-app.war*
+
+            echo "Copying new WAR..."
+            cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
+
+            echo "Verifying deployment..."
+            /opt/wildfly/bin/jboss-cli.sh --connect --command="deployment-info"
             EOF
 
       # 6️⃣ Deploy WAR on Node2
@@ -73,7 +79,13 @@ jobs:
                 > /opt/wildfly/wildfly.log 2>&1 &
               sleep 20
             fi
-            # Deploy WAR
-            /opt/wildfly/bin/jboss-cli.sh --connect \
-              --command="deploy /tmp/sample-app.war --force"
+
+            echo "Cleaning old deployments..."
+            rm -f /opt/wildfly/standalone/deployments/sample-app.war*
+
+            echo "Copying new WAR..."
+            cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
+
+            echo "Verifying deployment..."
+            /opt/wildfly/bin/jboss-cli.sh --connect --command="deployment-info"
             EOF
