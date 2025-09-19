@@ -10,37 +10,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2️⃣ Build the WAR with Maven
+      # 2️⃣ Build WAR with Maven
       - name: Build WAR
         run: mvn clean package -DskipTests
 
       # 3️⃣ Copy WAR to Node1
       - name: Copy WAR to Node1
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
-          target: "/tmp/sample-app.war"
+          target: "/tmp/"
 
       # 4️⃣ Copy WAR to Node2
       - name: Copy WAR to Node2
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
-          target: "/tmp/sample-app.war"
+          target: "/tmp/"
 
       # 5️⃣ Deploy WAR on Node1
       - name: Deploy WAR on Node1
-        uses: appleboy/ssh-action@v0.1.7
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
@@ -53,6 +53,18 @@ jobs:
                 > /opt/wildfly/wildfly.log 2>&1 &
               sleep 20
             fi
+
+            # Wait until mgmt port is up
+            timeout=60
+            elapsed=0
+            while ! ss -ltn | grep -q ":9990"; do
+              sleep 2
+              elapsed=$((elapsed + 2))
+              if [ $elapsed -ge $timeout ]; then
+                echo "ERROR: WildFly mgmt port not available"
+                exit 1
+              fi
+            done
 
             echo "Cleaning old deployments..."
             rm -f /opt/wildfly/standalone/deployments/sample-app.war*
@@ -66,7 +78,7 @@ jobs:
 
       # 6️⃣ Deploy WAR on Node2
       - name: Deploy WAR on Node2
-        uses: appleboy/ssh-action@v0.1.7
+        uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
@@ -79,6 +91,18 @@ jobs:
                 > /opt/wildfly/wildfly.log 2>&1 &
               sleep 20
             fi
+
+            # Wait until mgmt port is up
+            timeout=60
+            elapsed=0
+            while ! ss -ltn | grep -q ":9990"; do
+              sleep 2
+              elapsed=$((elapsed + 2))
+              if [ $elapsed -ge $timeout ]; then
+                echo "ERROR: WildFly mgmt port not available"
+                exit 1
+              fi
+            done
 
             echo "Cleaning old deployments..."
             rm -f /opt/wildfly/standalone/deployments/sample-app.war*
