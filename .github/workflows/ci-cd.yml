@@ -20,7 +20,7 @@ jobs:
 
       # 3️⃣ Copy WAR to Node1
       - name: Copy WAR to Node1
-        uses: appleboy/scp-action@v0.1.10
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
@@ -30,7 +30,7 @@ jobs:
 
       # 4️⃣ Copy WAR to Node2
       - name: Copy WAR to Node2
-        uses: appleboy/scp-action@v0.1.10
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
@@ -40,7 +40,7 @@ jobs:
 
       # 5️⃣ Deploy on Node1
       - name: Deploy WAR on Node1
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
@@ -64,7 +64,7 @@ jobs:
 
       # 6️⃣ Deploy on Node2
       - name: Deploy WAR on Node2
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
