@@ -20,27 +20,27 @@ jobs:
 
       # 3️⃣ Copy WAR to Node1
       - name: Copy WAR to Node1
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.10
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
-          target: "/tmp/"
+          target: "/tmp/sample-app.war"
 
       # 4️⃣ Copy WAR to Node2
       - name: Copy WAR to Node2
-        uses: appleboy/scp-action@v0.1.4
+        uses: appleboy/scp-action@v0.1.10
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: "target/sample-app.war"
-          target: "/tmp/"
+          target: "/tmp/sample-app.war"
 
-      # 5️⃣ Deploy WAR on Node1
+      # 5️⃣ Deploy on Node1
       - name: Deploy WAR on Node1
-        uses: appleboy/ssh-action@v0.1.6
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
@@ -54,7 +54,6 @@ jobs:
               sleep 20
             fi
 
-            # Deploy WAR
             /opt/wildfly/bin/jboss-cli.sh \
               --connect \
               --controller=127.0.0.1:9990 \
@@ -63,9 +62,9 @@ jobs:
               --command="deploy /tmp/sample-app.war --force"
             EOF
 
-      # 6️⃣ Deploy WAR on Node2
+      # 6️⃣ Deploy on Node2
       - name: Deploy WAR on Node2
-        uses: appleboy/ssh-action@v0.1.6
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
@@ -79,7 +78,6 @@ jobs:
               sleep 20
             fi
 
-            # Deploy WAR
             /opt/wildfly/bin/jboss-cli.sh \
               --connect \
               --controller=127.0.0.1:9990 \
