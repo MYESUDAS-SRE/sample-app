@@ -32,7 +32,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
-          target: /tmp/sample-app.war   # ✅ Copy as file, not directory
+          target: /tmp/                  # ✅ upload into /tmp
+          overwrite: true                # ✅ force replace if exists
+          strip_components: 1            # ✅ ensure it's a file, not a folder
 
       # Step 5: Copy WAR to JBOSS2
       - name: Copy WAR to JBOSS2
@@ -42,7 +44,9 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
-          target: /tmp/sample-app.war   # ✅ Copy as file, not directory
+          target: /tmp/
+          overwrite: true
+          strip_components: 1
 
       # Step 6: Deploy to JBOSS1
       - name: Deploy on JBOSS1
@@ -76,11 +80,7 @@ jobs:
               --command="deploy /opt/wildfly/standalone/deployments/sample-app.war --force"
 
             echo "Verifying deployment..."
-            /opt/wildfly/bin/jboss-cli.sh \
-              --connect \
-              --user=$WILDFLY_USER \
-              --password=$WILDFLY_PASS \
-              --command="deployment-info"
+            /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
             EOF
         env:
           WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
@@ -118,11 +118,7 @@ jobs:
               --command="deploy /opt/wildfly/standalone/deployments/sample-app.war --force"
 
             echo "Verifying deployment..."
-            /opt/wildfly/bin/jboss-cli.sh \
-              --connect \
-              --user=$WILDFLY_USER \
-              --password=$WILDFLY_PASS \
-              --command="deployment-info"
+            /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
             EOF
         env:
           WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
