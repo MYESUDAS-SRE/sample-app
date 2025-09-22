@@ -32,7 +32,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
-          target: /tmp/   # ✅ FIXED (directory, not file)
+          target: /tmp/   # ✅ must be directory, not /tmp/sample-app.war
 
       # Step 5: Copy WAR to JBOSS2
       - name: Copy WAR to JBOSS2
@@ -42,7 +42,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
-          target: /tmp/   # ✅ FIXED
+          target: /tmp/   # ✅ same fix here
 
       # Step 6: Deploy to JBOSS1
       - name: Deploy on JBOSS1
@@ -51,6 +51,7 @@ jobs:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
+          envs: WILDFLY_USER,WILDFLY_PASS   # ✅ make secrets available in SSH session
           script: |
             sudo -u wildfly bash <<'EOF'
             if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
@@ -70,13 +71,16 @@ jobs:
             /opt/wildfly/bin/jboss-cli.sh \
               --connect \
               --controller=127.0.0.1:9990 \
-              --user=${WILDFLY_USER} \
-              --password=${WILDFLY_PASS} \
+              --user=$WILDFLY_USER \
+              --password=$WILDFLY_PASS \
               --command="deploy /opt/wildfly/standalone/deployments/sample-app.war --force"
 
             echo "Verifying deployment..."
-            /opt/wildfly/bin/jboss-cli.sh --connect --command="deployment-info"
+            /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
             EOF
+        env:
+          WILDFLY_USER: ${{ secrets.WILDFLY_USER }}   # ✅ secrets must exist in GitHub repo
+          WILDFLY_PASS: ${{ secrets.WILDFLY_PASS }}
 
       # Step 7: Deploy to JBOSS2
       - name: Deploy on JBOSS2
@@ -85,6 +89,7 @@ jobs:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
+          envs: WILDFLY_USER,WILDFLY_PASS
           script: |
             sudo -u wildfly bash <<'EOF'
             if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
@@ -104,10 +109,13 @@ jobs:
             /opt/wildfly/bin/jboss-cli.sh \
               --connect \
               --controller=127.0.0.1:9990 \
-              --user=${WILDFLY_USER} \
-              --password=${WILDFLY_PASS} \
+              --user=$WILDFLY_USER \
+              --password=$WILDFLY_PASS \
               --command="deploy /opt/wildfly/standalone/deployments/sample-app.war --force"
 
             echo "Verifying deployment..."
-            /opt/wildfly/bin/jboss-cli.sh --connect --command="deployment-info"
+            /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
             EOF
+        env:
+          WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
+          WILDFLY_PASS: ${{ secrets.WILDFLY_PASS }}
