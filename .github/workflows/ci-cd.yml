@@ -32,7 +32,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
-          target: /tmp/   # ✅ must be directory, not /tmp/sample-app.war
+          target: /tmp/
 
       # Step 5: Copy WAR to JBOSS2
       - name: Copy WAR to JBOSS2
@@ -42,7 +42,7 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
-          target: /tmp/   # ✅ same fix here
+          target: /tmp/
 
       # Step 6: Deploy to JBOSS1
       - name: Deploy on JBOSS1
@@ -51,9 +51,8 @@ jobs:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
-          envs: WILDFLY_USER,WILDFLY_PASS   # ✅ make secrets available in SSH session
+          envs: WILDFLY_USER,WILDFLY_PASS
           script: |
-            sudo -u wildfly bash <<'EOF'
             if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               echo "Starting WildFly..."
               nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 \
@@ -62,10 +61,10 @@ jobs:
             fi
 
             echo "Cleaning old deployments..."
-            rm -f /opt/wildfly/standalone/deployments/sample-app.war*
+            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war*
 
             echo "Copying new WAR..."
-            cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
+            sudo cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
 
             echo "Deploying via CLI..."
             /opt/wildfly/bin/jboss-cli.sh \
@@ -77,9 +76,8 @@ jobs:
 
             echo "Verifying deployment..."
             /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
-            EOF
         env:
-          WILDFLY_USER: ${{ secrets.WILDFLY_USER }}   # ✅ secrets must exist in GitHub repo
+          WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
           WILDFLY_PASS: ${{ secrets.WILDFLY_PASS }}
 
       # Step 7: Deploy to JBOSS2
@@ -91,7 +89,6 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           envs: WILDFLY_USER,WILDFLY_PASS
           script: |
-            sudo -u wildfly bash <<'EOF'
             if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               echo "Starting WildFly..."
               nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 \
@@ -100,10 +97,10 @@ jobs:
             fi
 
             echo "Cleaning old deployments..."
-            rm -f /opt/wildfly/standalone/deployments/sample-app.war*
+            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war*
 
             echo "Copying new WAR..."
-            cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
+            sudo cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
 
             echo "Deploying via CLI..."
             /opt/wildfly/bin/jboss-cli.sh \
@@ -115,7 +112,6 @@ jobs:
 
             echo "Verifying deployment..."
             /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
-            EOF
         env:
           WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
           WILDFLY_PASS: ${{ secrets.WILDFLY_PASS }}
