@@ -27,7 +27,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           source: target/sample-app.war
           target: /tmp/sample-app.war
 
@@ -36,7 +36,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_KEY }}
           envs: WILDFLY_USER,WILDFLY_PASS
           script: |
             echo "Fixing permissions..."
