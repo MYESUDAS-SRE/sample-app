@@ -31,8 +31,8 @@ jobs:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
-          source: "target/sample-app.war"
-          target: "/tmp/sample-app.war"   # ✅ copy directly as file
+          source: target/sample-app.war
+          target: /tmp/sample-app.war   # ✅ Copy as file, not directory
 
       # Step 5: Copy WAR to JBOSS2
       - name: Copy WAR to JBOSS2
@@ -41,8 +41,8 @@ jobs:
           host: ${{ secrets.JBOSS2 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
-          source: "target/sample-app.war"
-          target: "/tmp/sample-app.war"   # ✅ copy directly as file
+          source: target/sample-app.war
+          target: /tmp/sample-app.war   # ✅ Copy as file, not directory
 
       # Step 6: Deploy to JBOSS1
       - name: Deploy on JBOSS1
@@ -61,9 +61,6 @@ jobs:
               sleep 20
             fi
 
-            echo "Checking WAR file..."
-            ls -l /tmp/sample-app.war
-
             echo "Cleaning old deployments..."
             rm -f /opt/wildfly/standalone/deployments/sample-app.war*
 
@@ -79,7 +76,11 @@ jobs:
               --command="deploy /opt/wildfly/standalone/deployments/sample-app.war --force"
 
             echo "Verifying deployment..."
-            /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
+            /opt/wildfly/bin/jboss-cli.sh \
+              --connect \
+              --user=$WILDFLY_USER \
+              --password=$WILDFLY_PASS \
+              --command="deployment-info"
             EOF
         env:
           WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
@@ -102,9 +103,6 @@ jobs:
               sleep 20
             fi
 
-            echo "Checking WAR file..."
-            ls -l /tmp/sample-app.war
-
             echo "Cleaning old deployments..."
             rm -f /opt/wildfly/standalone/deployments/sample-app.war*
 
@@ -120,7 +118,11 @@ jobs:
               --command="deploy /opt/wildfly/standalone/deployments/sample-app.war --force"
 
             echo "Verifying deployment..."
-            /opt/wildfly/bin/jboss-cli.sh --connect --user=$WILDFLY_USER --password=$WILDFLY_PASS --command="deployment-info"
+            /opt/wildfly/bin/jboss-cli.sh \
+              --connect \
+              --user=$WILDFLY_USER \
+              --password=$WILDFLY_PASS \
+              --command="deployment-info"
             EOF
         env:
           WILDFLY_USER: ${{ secrets.WILDFLY_USER }}
