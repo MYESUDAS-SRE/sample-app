@@ -52,15 +52,6 @@ jobs:
               sleep 20
             fi
 
-            echo "===== Ensuring management user exists ====="
-            MGMT_USERS_FILE="/opt/wildfly/standalone/configuration/mgmt-users.properties"
-            if ! grep -q "^$WILDFLY_USER=" "$MGMT_USERS_FILE"; then
-              echo "Creating management user $WILDFLY_USER ..."
-              /opt/wildfly/bin/add-user.sh -u "$WILDFLY_USER" -p "$WILDFLY_PASS" -g "admin" -sc /opt/wildfly/standalone/configuration --silent
-            else
-              echo "Management user $WILDFLY_USER already exists."
-            fi
-
             echo "===== Cleaning old deployments ====="
             rm -f /opt/wildfly/standalone/deployments/sample-app.war*
 
