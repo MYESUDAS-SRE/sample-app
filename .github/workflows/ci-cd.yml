@@ -29,7 +29,7 @@ jobs:
       - name: Verify WAR built
         run: ls -lh target
 
-      # 5. Upload WAR to EC2 (/tmp directly, no extra folder)
+      # 5. Upload WAR to EC2
       - name: Upload WAR to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -39,7 +39,7 @@ jobs:
           source: target/sample-app.war
           target: /tmp/
 
-      # 6. Deploy to WildFly (copy WAR into deployments)
+      # 6. Deploy WAR on WildFly
       - name: Deploy WAR on WildFly
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -55,13 +55,15 @@ jobs:
             fi
 
             echo "===== Cleaning old deployments ====="
-            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war.undeployed
-            sudo touch /opt/wildfly/standalone/deployments/sample-app.war.dodeploy
-
+            sudo rm -rf /opt/wildfly/standalone/deployments/sample-app.war
+            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war.*  # remove dodeploy/undeployed files
 
             echo "===== Copying new WAR ====="
-            sudo cp -r /tmp/sample-app.war /opt/wildfly/standalone/deployments/sample-app.war
+            sudo cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
             sudo chown wildfly:wildfly /opt/wildfly/standalone/deployments/sample-app.war
 
-            echo "===== Deployment done. Check logs if needed ====="
+            echo "===== Trigger deployment ====="
+            sudo -u wildfly touch /opt/wildfly/standalone/deployments/sample-app.war.dodeploy
+
+            echo "===== Deployment done. Last 20 log lines ====="
             tail -n 20 /opt/wildfly/wildfly.log
