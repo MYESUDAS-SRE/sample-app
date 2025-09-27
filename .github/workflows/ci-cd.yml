@@ -27,7 +27,13 @@ jobs:
 
       # 4. Verify WAR exists
       - name: Verify WAR built
-        run: ls -lh target
+        run: |
+          echo "Contents of target/"
+          ls -lh target/
+          if [ ! -f target/sample-app.war ]; then
+            echo "ERROR: WAR file not found!"
+            exit 1
+          fi
 
       # 5. Upload WAR to EC2
       - name: Upload WAR to EC2
@@ -39,7 +45,22 @@ jobs:
           source: target/sample-app.war
           target: /tmp/
 
-      # 6. Deploy to WildFly (no CLI, just copy WAR)
+      # 6. Confirm WAR is on the server
+      - name: Verify WAR on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.JBOSS1 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            echo "Checking /tmp for WAR..."
+            if [ ! -f /tmp/sample-app.war ]; then
+              echo "ERROR: WAR file not found on EC2!"
+              exit 1
+            fi
+            echo "WAR file is present: /tmp/sample-app.war"
+
+      # 7. Deploy to WildFly (no CLI, just copy WAR)
       - name: Deploy WAR on WildFly
         uses: appleboy/ssh-action@v1.2.0
         with:
