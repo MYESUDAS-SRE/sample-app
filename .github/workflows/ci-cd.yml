@@ -59,7 +59,7 @@ jobs:
             sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war.*  # remove dodeploy/undeployed files
 
             echo "===== Copying new WAR ====="
-            sudo cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
+            sudo cp /tmp/sample-app.war/sample-app.war /opt/wildfly/standalone/deployments/
             sudo chown wildfly:wildfly /opt/wildfly/standalone/deployments/sample-app.war
 
             echo "===== Trigger deployment ====="
