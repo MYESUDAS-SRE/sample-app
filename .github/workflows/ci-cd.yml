@@ -55,7 +55,9 @@ jobs:
             fi
 
             echo "===== Cleaning old deployments ====="
-            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war*
+            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war.undeployed
+            sudo touch /opt/wildfly/standalone/deployments/sample-app.war.dodeploy
+
 
             echo "===== Copying new WAR ====="
             sudo cp -r /tmp/sample-app.war /opt/wildfly/standalone/deployments/sample-app.war
