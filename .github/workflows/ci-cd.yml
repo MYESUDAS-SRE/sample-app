@@ -60,7 +60,7 @@ jobs:
             sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war*
 
             echo "===== Copying new WAR ====="
-            sudo cp /tmp/target/sample-app.war /opt/wildfly/standalone/deployments/
+            sudo cp /tmp/target/ /opt/wildfly/standalone/deployments/
             sudo chown wildfly:wildfly /opt/wildfly/standalone/deployments/sample-app.war
 
             echo "===== Trigger deployment ====="
