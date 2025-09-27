@@ -1,4 +1,4 @@
-name: Deploy to WildFly
+name: Deploy to WildFly Cluster
 
 on:
   push:
@@ -29,8 +29,8 @@ jobs:
       - name: Verify WAR built
         run: ls -lh target
 
-      # 5. Upload WAR to EC2
-      - name: Upload WAR to EC2
+      # 5. Deploy to JBoss1
+      - name: Upload WAR to JBoss1
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.JBOSS1 }}
@@ -39,32 +39,50 @@ jobs:
           source: target/sample-app.war
           target: /tmp/
 
-      # 6. Deploy WAR on WildFly
-      - name: Deploy WAR on WildFly
+      - name: Deploy WAR on JBoss1
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.JBOSS1 }}
           username: ec2-user
           key: ${{ secrets.EC2_KEY }}
           script: |
-            echo "===== Starting WildFly if not running ====="
+            echo "===== JBoss1 Deployment ====="
             if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
               sudo -u wildfly nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 \
                 > /opt/wildfly/wildfly.log 2>&1 &
               sleep 20
             fi
-
-            echo "===== Cleaning old deployments ====="
-            sudo rm -rf /opt/wildfly/standalone/deployments/sample-app.war
-            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war.*  # remove dodeploy/undeployed files
-            sudo rm -f /opt/wildfly/standalone/deployments/sample-app.war*
-
-            echo "===== Copying new WAR ====="
-            sudo cp /tmp/target/sample-app.war /opt/wildfly/standalone/deployments/
+            sudo rm -rf /opt/wildfly/standalone/deployments/sample-app.war*
+            sudo cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
             sudo chown wildfly:wildfly /opt/wildfly/standalone/deployments/sample-app.war
-
-            echo "===== Trigger deployment ====="
             sudo -u wildfly touch /opt/wildfly/standalone/deployments/sample-app.war.dodeploy
+            tail -n 20 /opt/wildfly/wildfly.log
 
-            echo "===== Deployment done. Last 20 log lines ====="
+      # 6. Deploy to JBoss2
+      - name: Upload WAR to JBoss2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.JBOSS2 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          source: target/sample-app.war
+          target: /tmp/
+
+      - name: Deploy WAR on JBoss2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.JBOSS2 }}
+          username: ec2-user
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            echo "===== JBoss2 Deployment ====="
+            if ! pgrep -u wildfly -f "wildfly" > /dev/null; then
+              sudo -u wildfly nohup /opt/wildfly/bin/standalone.sh -b 0.0.0.0 \
+                > /opt/wildfly/wildfly.log 2>&1 &
+              sleep 20
+            fi
+            sudo rm -rf /opt/wildfly/standalone/deployments/sample-app.war*
+            sudo cp /tmp/sample-app.war /opt/wildfly/standalone/deployments/
+            sudo chown wildfly:wildfly /opt/wildfly/standalone/deployments/sample-app.war
+            sudo -u wildfly touch /opt/wildfly/standalone/deployments/sample-app.war.dodeploy
             tail -n 20 /opt/wildfly/wildfly.log
