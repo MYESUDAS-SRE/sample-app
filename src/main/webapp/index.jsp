@@ -5,7 +5,9 @@
     <title>Sample App</title>
   </head>
   <body>
-    <h1>Hello from JBoss Node: <%= InetAddress.getLocalHost().getHostName() %>, Now the time is $Date</h1>
+    <h1>
+      Hello from JBoss Node: <%= InetAddress.getLocalHost().getHostName() %>
+      &nbsp;&nbsp;Now the time is <%= new java.util.Date() %>
+    </h1>
   </body>
 </html>
-
